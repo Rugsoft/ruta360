@@ -1,6 +1,6 @@
 # Ruta360
 
-Proyecto práctico de la unidad **UF1846 · Desarrollo de aplicaciones web distribuidas**. Ruta360 es una pequeña aplicación PHP que actúa como **consumidora de un servicio externo**: el usuario elige una ciudad guardada en MySQL y la aplicación consulta su tiempo actual en la API meteorológica [Open-Meteo](https://open-meteo.com/), mostrando temperatura, viento y dirección del viento.
+Ruta360 es una pequeña aplicación PHP que actúa como **consumidora de un servicio externo**: el usuario elige una ciudad guardada en MySQL y la aplicación consulta su tiempo actual en la API meteorológica [Open-Meteo](https://open-meteo.com/), mostrando temperatura, viento y dirección del viento.
 
 ## Cómo funciona
 
