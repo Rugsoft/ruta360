@@ -1,0 +1,310 @@
+/* ============================================================
+   RUTA360 · Panel de instrumentos
+   Tokens
+   ============================================================ */
+:root {
+    --tinta: #13293D;      /* tinta de carta */
+    --bruma: #EEF2F4;      /* fondo bruma */
+    --papel: #FFFFFF;      /* panel */
+    --baliza: #E2571E;     /* baliza: aguja y foco */
+    --rumbo: #2C6E91;      /* azul rumbo: enlaces */
+    --linea: #C9D4DA;      /* trazos finos */
+    --tinta-suave: #5A6B7A;
+    --radio: 14px;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Instrument Sans", Arial, sans-serif;
+    background:
+        radial-gradient(1200px 600px at 85% -10%, rgba(44, 110, 145, 0.10), transparent 60%),
+        var(--bruma);
+    color: var(--tinta);
+    margin: 0;
+    padding: 2rem 1.25rem 3rem;
+    line-height: 1.5;
+}
+
+/* ============================================================
+   Panel
+   ============================================================ */
+.panel {
+    max-width: 34rem;
+    margin: 2.5rem auto;
+    background: var(--papel);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    box-shadow: 0 18px 40px rgba(19, 41, 61, 0.10);
+    padding: 1.6rem 1.8rem 1.8rem;
+}
+
+.panel-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--linea);
+    margin-bottom: 1.2rem;
+}
+
+.marca {
+    margin: 0;
+    font-family: "Bricolage Grotesque", Arial, sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+}
+
+.marca-360 {
+    color: var(--baliza);
+}
+
+.panel-rol {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+    text-align: right;
+}
+
+h1 {
+    font-family: "Bricolage Grotesque", Arial, sans-serif;
+    font-weight: 800;
+    font-size: 1.45rem;
+    line-height: 1.2;
+    margin: 0 0 1.2rem;
+    letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Formulario
+   ============================================================ */
+label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+select {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--papel);
+    font: inherit;
+    color: var(--tinta);
+    margin-bottom: 1rem;
+}
+
+button {
+    background: var(--tinta);
+    color: var(--papel);
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1.3rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+button:hover {
+    background: var(--rumbo);
+}
+
+button:focus-visible,
+select:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--baliza);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   Lecturas (tiempo.php)
+   ============================================================ */
+.coordenadas {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--tinta-suave);
+}
+
+.volver {
+    display: inline-block;
+    margin: 0;
+    color: var(--rumbo);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.volver:hover {
+    text-decoration: underline;
+}
+
+.lecturas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+}
+
+.lectura {
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    padding: 0.8rem 0.95rem;
+}
+
+.lectura-etiqueta {
+    margin: 0 0 0.25rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+}
+
+.lectura-valor {
+    margin: 0;
+    font-family: "Bricolage Grotesque", Arial, sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.unidad {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tinta-suave);
+    margin-left: 0.3rem;
+}
+
+/* Brújula: la aguja apunta al RUMBO REAL del viento */
+.lectura-brujula {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brujula {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+    border: 1px solid var(--linea);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, var(--bruma) 0 62%, transparent 63%);
+}
+
+.brujula::before,
+.brujula::after {
+    content: "";
+    position: absolute;
+    background: var(--linea);
+}
+
+.brujula::before {
+    left: 50%;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+}
+
+.brujula::after {
+    top: 50%;
+    left: 4px;
+    right: 4px;
+    height: 1px;
+}
+
+.brujula-aguja {
+    position: absolute;
+    inset: 0;
+    transform: rotate(var(--rumbo, 0deg));
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.brujula-aguja::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 7px;
+    bottom: 50%;
+    width: 3px;
+    margin-left: -1.5px;
+    background: var(--baliza);
+    border-radius: 2px;
+}
+
+.brujula-aguja::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    bottom: 7px;
+    width: 3px;
+    margin-left: -1.5px;
+    background: var(--tinta-suave);
+    border-radius: 2px;
+    opacity: 0.4;
+}
+
+.brujula-grados {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.fuente {
+    margin: 1.1rem 0 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--tinta-suave);
+    border-top: 1px solid var(--linea);
+    padding-top: 0.7rem;
+}
+
+/* ============================================================
+   Estados
+   ============================================================ */
+.error {
+    color: #B00020;
+    font-weight: 600;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+}
+
+@media (max-width: 480px) {
+    .panel {
+        padding: 1.2rem 1.1rem 1.4rem;
+    }
+
+    .lecturas {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brujula-aguja {
+        transition: none;
+    }
+
+    button {
+        transition: none;
+    }
+}
