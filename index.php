@@ -46,7 +46,7 @@ $ciudades = $consulta->fetchAll();
     </form>
 
     <p class="enlace-rutas">
-        <a href="rutas.php">Ver rutas recomendadas →</a>
+        <a href="rutas.php">Ver rutas recomendadas</a>
     </p>
 </main>
 </body>
