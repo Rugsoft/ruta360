@@ -321,6 +321,43 @@ a:focus-visible {
     padding: 0.7rem 0.9rem;
 }
 
+/* ============================================================
+   Etiqueta de dificultad (ver_ruta.php)
+   ============================================================ */
+.etiqueta {
+    display: inline-block;
+    padding: 0.15rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: "Instrument Sans", Arial, sans-serif;
+}
+
+.etiqueta-facil {
+    color: #1B7A3D;
+    border-color: #1B7A3D;
+    background: rgba(27, 122, 61, 0.10);
+}
+
+.etiqueta-media {
+    color: #9A6A00;
+    border-color: #9A6A00;
+    background: rgba(154, 106, 0, 0.10);
+}
+
+.etiqueta-alta {
+    color: #B00020;
+    border-color: #B00020;
+    background: rgba(176, 0, 32, 0.08);
+}
+
+.etiqueta-neutra {
+    color: var(--tinta-suave);
+    border-color: var(--tinta-suave);
+    background: var(--bruma);
+}
+
 @media (max-width: 480px) {
     .panel {
         padding: 1.2rem 1.1rem 1.4rem;

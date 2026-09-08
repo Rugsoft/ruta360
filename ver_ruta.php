@@ -25,6 +25,15 @@ if ($resultado['ok']) {
     $ruta = $resultado['datos'];
     $puntos = $ruta['puntos_interes'] ?? [];
 }
+
+// La dificultad llega como texto del contrato; la convertimos en una clase
+// CSS segura para colorear la etiqueta. Un valor desconocido no rompe la página.
+$claseDificultad = match ($ruta['dificultad'] ?? null) {
+    'fácil' => 'facil',
+    'media' => 'media',
+    'alta' => 'alta',
+    default => null,
+};
 ?>
 <!doctype html>
 <html lang="es">
@@ -63,7 +72,13 @@ if ($resultado['ok']) {
             </div>
             <div class="lectura">
                 <p class="lectura-etiqueta">Dificultad</p>
-                <p class="lectura-valor"><?= htmlspecialchars($ruta['dificultad'] ?? '—') ?></p>
+                <p class="lectura-valor">
+                    <?php if ($claseDificultad === null): ?>
+                        <span class="etiqueta etiqueta-neutra"><?= htmlspecialchars($ruta['dificultad'] ?? '—') ?></span>
+                    <?php else: ?>
+                        <span class="etiqueta etiqueta-<?= $claseDificultad ?>"><?= htmlspecialchars($ruta['dificultad']) ?></span>
+                    <?php endif; ?>
+                </p>
             </div>
         </div>
 
