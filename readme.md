@@ -118,8 +118,10 @@ Ruta360 publica un recurso de lectura propio. La misma aplicación consume un se
 **URL de prueba**
 
 ```
-http://localhost/ruta360/api/ruta.php?id_ruta=1
+http://localhost/curso-soc-php/Ruta360/api/ruta.php?id_ruta=1
 ```
+
+(La ruta exacta depende de dónde tengas copiado el proyecto dentro de `htdocs`; el manual genérico usa `localhost/ruta360/`.)
 
 | Parte          | Función                              |
 | -------------- | ------------------------------------ |
