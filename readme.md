@@ -32,6 +32,8 @@ La elección del usuario no viaja directamente hasta la API: primero pasa por la
 Ruta360\
 ├── index.php              Portada: selector de ciudades activas
 ├── tiempo.php             Página de resultados (validación + servicio)
+├── ver_ruta.php           Detalle de una ruta consumiendo la API propia
+├── rutas.php              Listado de rutas que enlaza a ver_ruta.php
 ├── conexion.php           Conexión PDO a MySQL
 ├── estilos.css            Estilos (panel de instrumentos)
 ├── api\
@@ -41,7 +43,8 @@ Ruta360\
 ├── sql\
 │   └── ruta360.sql        Script de creación de la base de datos
 └── servicios\
-    └── meteorologia.php   Comunicación con Open-Meteo (cURL + JSON)
+    ├── meteorologia.php   Comunicación con Open-Meteo (cURL + JSON)
+    └── cliente_rutas.php  Cliente HTTP de la API propia de ruta
 ```
 
 **Responsabilidad de cada archivo**
@@ -51,6 +54,9 @@ Ruta360\
 | `servicios/meteorologia.php` | URL, cURL, HTTP y JSON         | HTML de la página         |
 | `tiempo.php`                 | Resultado `ok`/`datos`/`error` | Opciones internas de cURL |
 | `index.php`                  | Ciudades activas de MySQL      | Detalles de la API        |
+| `ver_ruta.php`               | Resultado `ok`/`estado`/`datos` | MySQL de la API          |
+| `rutas.php`                  | Rutas activas para enlazar     | Contrato JSON del recurso |
+| `servicios/cliente_rutas.php` | URL, cURL, HTTP y contrato JSON | HTML de la página          |
 | `api/ruta.php`               | Contrato JSON del recurso      | HTML de las páginas       |
 | `estilos.css`                | Colores y presentación         | API y datos               |
 
@@ -179,6 +185,56 @@ Ejemplo aproximado de respuesta correcta (HTTP 200):
 | `api/ruta.php` (sin parámetro) | 400             | El parámetro es obligatorio       |
 
 Una ruta sin puntos devuelve `puntos_interes: []` con HTTP 200: la lista vacía es una respuesta válida, no un error.
+
+## Consumir la propia API (Manual 5)
+
+**`ver_ruta.php`** es un cliente de nuestra propia API: no consulta MySQL. Pide la ruta por HTTP a `api/ruta.php`, interpreta su contrato JSON y genera HTML.
+
+Se producen dos peticiones: el navegador pide `ver_ruta.php` (HTML) y `ver_ruta.php` pide `api/ruta.php` (JSON).
+
+**Responsabilidades**
+
+| Archivo | Responsabilidad |
+|---|---|
+| `api/ruta.php` | Validar el recurso, consultar datos y responder JSON |
+| `servicios/cliente_rutas.php` | Realizar la petición HTTP e interpretar la respuesta |
+| `ver_ruta.php` | Elegir qué HTML mostrar al usuario |
+| `conexion.php` | Solo lo necesita la API para acceder a MySQL |
+
+**Contrato interno del cliente**
+
+`obtenerRutaApi(int $idRuta): array` devuelve siempre la misma estructura:
+
+| Clave | Contenido |
+|---|---|
+| `ok` | `true` si la ruta se obtuvo y cumple el contrato; `false` si hubo un problema |
+| `estado` | Código HTTP, o `0` cuando no hubo ninguna respuesta (fallo de transporte) |
+| `datos` | La ruta (con ciudad y puntos de interés) cuando hay éxito |
+| `error` | Solo en errores: mensaje comprensible, nunca detalles internos |
+
+**Capas de error (en orden)**
+
+1. **Transporte** — cURL no pudo conectarse → `estado: 0`, "No se ha podido contactar con el servicio."
+2. **JSON** — el cuerpo no es un JSON válido → "El servicio ha devuelto una respuesta no válida."
+3. **Contrato** — estado distinto de 200 o `ok` falso → el error de la API, o uno genérico
+4. **Datos** — falta el campo `datos` → "La respuesta no contiene los datos esperados."
+
+**Pruebas (apartado 5.25)**
+
+| URL | Resultado esperado | Capa que responde |
+|---|---|---|
+| `ver_ruta.php?id_ruta=1` | Página completa | API + cliente |
+| `ver_ruta.php?id_ruta=999` | "La ruta no existe o no está disponible." | API: 404 |
+| `ver_ruta.php?id_ruta=abc` | "Selecciona una ruta válida." | Página cliente |
+| API devuelve texto incorrecto | "El servicio ha devuelto una respuesta no válida." | Cliente HTTP |
+| No hay conexión | "No se ha podido contactar con el servicio." | cURL / transporte |
+
+`ver_ruta.php` y `rutas.php`: URLs con la ruta real del proyecto:
+
+```
+http://localhost/curso-soc-php/Ruta360/ver_ruta.php?id_ruta=1
+http://localhost/curso-soc-php/Ruta360/rutas.php
+```
 
 ## Tecnologías
 
