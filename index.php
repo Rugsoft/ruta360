@@ -44,6 +44,10 @@ $ciudades = $consulta->fetchAll();
 
         <button type="submit">Consultar tiempo</button>
     </form>
+
+    <p class="enlace-rutas">
+        <a href="rutas.php">Ver rutas recomendadas →</a>
+    </p>
 </main>
 </body>
 </html>
