@@ -34,6 +34,7 @@ try {
             r.descripcion,
             r.duracion_minutos,
             r.distancia_km,
+            r.dificultad,
             c.id_ciudad,
             c.nombre AS ciudad,
             c.pais
@@ -72,6 +73,7 @@ try {
             'descripcion' => $ruta['descripcion'],
             'duracion_minutos' => (int) $ruta['duracion_minutos'],
             'distancia_km' => (float) $ruta['distancia_km'],
+            'dificultad' => $ruta['dificultad'],
             'numero_puntos' => count($puntos),
             'ciudad' => [
                 'id_ciudad' => (int) $ruta['id_ciudad'],

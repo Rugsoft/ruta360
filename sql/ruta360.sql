@@ -39,6 +39,7 @@ CREATE TABLE rutas (
     descripcion TEXT NOT NULL,
     duracion_minutos SMALLINT UNSIGNED NOT NULL,
     distancia_km DECIMAL(5,2) NOT NULL,
+    dificultad ENUM('fácil', 'media', 'alta') NOT NULL DEFAULT 'media',
     activa TINYINT(1) NOT NULL DEFAULT 1,
     CONSTRAINT fk_rutas_ciudad
         FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad)
@@ -60,11 +61,11 @@ CREATE TABLE puntos_interes (
 -- si la base de datos ya contiene otros datos, usa los identificadores reales.
 
 INSERT INTO rutas
-    (id_ciudad, titulo, descripcion, duracion_minutos, distancia_km)
+    (id_ciudad, titulo, descripcion, duracion_minutos, distancia_km, dificultad)
 VALUES
     (1, 'Barcelona modernista',
     'Un recorrido por algunos espacios esenciales del modernismo.',
-    180, 4.80);
+    180, 4.80, 'media');
 
 INSERT INTO puntos_interes
     (id_ruta, nombre, descripcion, orden)

@@ -135,7 +135,7 @@ http://localhost/curso-soc-php/Ruta360/api/ruta.php?id_ruta=1
 | Clave   | Contenido                                                                                                                                        |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `ok`    | `true` si la ruta se devuelve; `false` en cualquier error                                                                                        |
-| `datos` | Objeto con `id_ruta`, `titulo`, `descripcion`, `duracion_minutos`, `distancia_km`, `numero_puntos`, `ciudad` (objeto) y `puntos_interes` (lista) |
+| `datos` | Objeto con `id_ruta`, `titulo`, `descripcion`, `duracion_minutos`, `distancia_km`, `dificultad`, `numero_puntos`, `ciudad` (objeto) y `puntos_interes` (lista) |
 | `error` | Solo en errores: mensaje comprensible, nunca detalles internos                                                                                   |
 
 Ejemplo aproximado de respuesta correcta (HTTP 200):
@@ -149,6 +149,7 @@ Ejemplo aproximado de respuesta correcta (HTTP 200):
     "descripcion": "Un recorrido por algunos espacios esenciales del modernismo.",
     "duracion_minutos": 180,
     "distancia_km": 4.8,
+    "dificultad": "media",
     "numero_puntos": 3,
     "ciudad": {
       "id_ciudad": 1,
