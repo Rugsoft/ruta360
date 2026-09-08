@@ -73,3 +73,20 @@ VALUES
     (1, 'Sagrada Família', 'Inicio del recorrido.', 1),
     (1, 'Casa Milà', 'Arquitectura de Antoni Gaudí.', 2),
     (1, 'Casa Batlló', 'Fachada y formas inspiradas en la naturaleza.', 3);
+
+-- Reto opcional 4.31 · Segunda ruta para una ciudad ya existente.
+-- No copiamos el identificador de la primera ruta: usamos el que MySQL
+-- genere (LAST_INSERT_ID()) y así el script funciona en cualquier importación.
+
+INSERT INTO rutas
+    (id_ciudad, titulo, descripcion, duracion_minutos, distancia_km, dificultad)
+VALUES
+    (2, 'Madrid clásica',
+    'Un paseo por los espacios históricos del centro de la capital.',
+    120, 3.20, 'fácil');
+
+INSERT INTO puntos_interes
+    (id_ruta, nombre, descripcion, orden)
+VALUES
+    (LAST_INSERT_ID(), 'Puerta del Sol', 'Punto de partida del paseo.', 1),
+    (LAST_INSERT_ID(), 'Plaza Mayor', 'Plaza porticada del siglo XVII.', 2);
