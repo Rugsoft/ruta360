@@ -1,5 +1,5 @@
 <?php
-// Listado de rutas · Consumidor del recurso colección (Manual 6/7).
+// Listado de rutas · Consumidor del recurso colección de la API.
 // La página no consulta las tablas: pide la colección a la API y
 // presenta el resultado. El filtro se envía como parámetros GET.
 
@@ -58,7 +58,7 @@ $resultado = obtenerColeccionRutasApi([
 $rutas = $resultado['datos'] ?? [];
 
 // ------------------------------------------------------------------
-// Opciones del selector de ciudades (reto 7.35): recurso propio
+// Opciones del selector de ciudades: recurso propio
 // api/ciudades.php en lugar de derivarlas de la colección de rutas.
 // Si no carga, la página sigue funcionando con solo "Todas".
 // ------------------------------------------------------------------

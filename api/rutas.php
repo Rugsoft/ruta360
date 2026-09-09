@@ -1,5 +1,5 @@
 <?php
-// Manual 6 · Colección de rutas con filtros opcionales.
+// Colección de rutas con filtros opcionales.
 // Recurso: api/rutas.php (opcionalmente ?id_ciudad=, ?duracion_maxima=,
 // ?dificultad= y ?orden=). A diferencia del recurso individual, una
 // colección sin coincidencias responde 200 con una lista vacía.
@@ -39,7 +39,7 @@ if ($idCiudadTexto !== null && $idCiudadTexto !== '') {
     }
 }
 
-// duracion_maxima (opcional, actividad 6.24): entero positivo.
+// duracion_maxima (opcional): entero positivo.
 $duracionMaximaTexto = filter_input(INPUT_GET, 'duracion_maxima');
 $duracionMaxima = null;
 if ($duracionMaximaTexto !== null && $duracionMaximaTexto !== '') {
@@ -56,7 +56,7 @@ if ($duracionMaximaTexto !== null && $duracionMaximaTexto !== '') {
     }
 }
 
-// dificultad (opcional, actividad 6.27): solo facil, media o alta.
+// dificultad (opcional): solo facil, media o alta.
 $dificultadTexto = filter_input(INPUT_GET, 'dificultad');
 $dificultad = null;
 if ($dificultadTexto !== null && $dificultadTexto !== '') {
@@ -72,7 +72,7 @@ if ($dificultadTexto !== null && $dificultadTexto !== '') {
     $dificultad = $dificultadTexto;
 }
 
-// orden (opcional, reto 6.29): solo titulo o duracion.
+// orden (opcional): solo titulo o duracion.
 // Nunca se concatena el texto recibido: cada valor permitido elige
 // un fragmento ORDER BY fijo escrito por la aplicación.
 $ordenTexto = filter_input(INPUT_GET, 'orden');

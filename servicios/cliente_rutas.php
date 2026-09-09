@@ -1,5 +1,5 @@
 <?php
-// Cliente HTTP de la API propia de Ruta360 (Manuales 5, 6 y 7).
+// Cliente HTTP de la API propia de Ruta360.
 // Las páginas no consultan MySQL: piden los datos por HTTP e
 // interpretan el contrato JSON del proveedor.
 
@@ -107,7 +107,7 @@ function obtenerRutaApi(int $idRuta): array
 }
 
 /**
- * Colección de rutas con filtros opcionales (api/rutas.php, Manual 6).
+ * Colección de rutas con filtros opcionales (api/rutas.php).
  * Los filtros admitidos son id_ciudad, duracion_maxima, dificultad y
  * orden; los vacíos o nulos no se envían a la API.
  *
@@ -167,7 +167,7 @@ function obtenerColeccionRutasApi(array $filtros = []): array
 }
 
 /**
- * Colección de ciudades activas (api/ciudades.php, reto 7.35).
+ * Colección de ciudades activas (api/ciudades.php).
  * Alimenta el selector de rutas.php: si falla, la página debe
  * seguir funcionando sin opciones de ciudad.
  *

@@ -1,7 +1,6 @@
--- Ruta360 · Manual 3 · Base de datos de ciudades internas
+-- Ruta360 · Base de datos de ciudades internas
 -- Importar desde phpMyAdmin (pestaña SQL o Importar) o mediante el cliente mysql.
--- Nota: el manual imprimía "CREATE DATABASE ruta" y después "USE ruta360";
--- aquí se usa ruta360 de forma consistente.
+-- Nombre de la base: ruta360.
 
 CREATE DATABASE IF NOT EXISTS ruta360
 CHARACTER SET utf8mb4
@@ -29,7 +28,7 @@ VALUES
     ('Roma', 'Italia', 41.902800, 12.496400);
 
 -- ----------------------------------------------------------------
--- Manual 4 · Rutas y puntos de interés
+-- Rutas y puntos de interés
 -- ----------------------------------------------------------------
 
 CREATE TABLE rutas (
@@ -56,7 +55,7 @@ CREATE TABLE puntos_interes (
     UNIQUE KEY uq_ruta_orden (id_ruta, orden)
 );
 
--- Datos de ejemplo (Manual 4, apartado 4.8).
+-- Datos de ejemplo.
 -- Los valores 1 presuponen una importación nueva del script;
 -- si la base de datos ya contiene otros datos, usa los identificadores reales.
 
@@ -92,11 +91,11 @@ VALUES
     (LAST_INSERT_ID(), 'Plaza Mayor', 'Plaza porticada del siglo XVII.', 2);
 
 -- ----------------------------------------------------------------
--- Manual 6 · Más rutas para la colección y sus filtros
+-- Más rutas para la colección y sus filtros
 -- ----------------------------------------------------------------
 
 -- Las tres rutas siguen el mismo patrón: sin identificadores fijos.
--- La dificultad se asigna para que el filtro de dificultad (actividad 6.27)
+-- La dificultad se asigna para que el filtro de dificultad
 -- tenga los tres valores representados en la colección.
 
 INSERT INTO rutas

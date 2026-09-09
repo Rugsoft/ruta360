@@ -130,7 +130,7 @@ Ruta360 publica un recurso de lectura propio. La misma aplicación consume un se
 http://localhost/curso-soc-php/Ruta360/api/ruta.php?id_ruta=1
 ```
 
-(La ruta exacta depende de dónde tengas copiado el proyecto dentro de `htdocs`; el manual genérico usa `localhost/ruta360/`.)
+(La ruta exacta depende de dónde tengas copiado el proyecto dentro de `htdocs`.)
 
 | Parte          | Función                              |
 | -------------- | ------------------------------------ |
@@ -189,7 +189,7 @@ Ejemplo aproximado de respuesta correcta (HTTP 200):
 
 Una ruta sin puntos devuelve `puntos_interes: []` con HTTP 200: la lista vacía es una respuesta válida, no un error.
 
-## Colección de rutas: `api/rutas.php` (Manual 6)
+## Colección de rutas: `api/rutas.php`
 
 Segundo recurso de la API: la colección de rutas activas, filtrable por ciudad (y por otros criterios). A diferencia del recurso individual, **cero coincidencias es una respuesta correcta**: 200 con `total: 0` y `datos: []`.
 
@@ -210,9 +210,9 @@ http://localhost/curso-soc-php/Ruta360/api/rutas.php
 | Filtro | Valores | Sin él / vacío | Inválido |
 |---|---|---|---|
 | `id_ciudad` | Entero ≥ 1 | Sin filtro | 400 |
-| `duracion_maxima` (6.24) | Entero ≥ 1 (minutos) | Sin filtro | 400 |
-| `dificultad` (6.27) | `facil`, `media`, `alta` (acepta el acento) | Sin filtro | 400 |
-| `orden` (reto 6.29) | `titulo`, `duracion` | Orden por defecto (ciudad, título) | 400 |
+| `duracion_maxima` | Entero ≥ 1 (minutos) | Sin filtro | 400 |
+| `dificultad` | `facil`, `media`, `alta` (acepta el acento) | Sin filtro | 400 |
+| `orden` | `titulo`, `duracion` | Orden por defecto (ciudad, título) | 400 |
 
 **Contrato de la colección**
 
@@ -257,7 +257,7 @@ Ejemplo con filtro (`api/rutas.php?id_ciudad=1`):
 
 El `LEFT JOIN` con `puntos_interes` conserva las rutas que todavía no tienen puntos (con `INNER JOIN` desaparecerían del listado).
 
-**Pruebas de la colección (6.22 ampliada)**
+**Pruebas de la colección**
 
 | URL | Estado | Resultado |
 |---|---|---|
@@ -274,7 +274,7 @@ El `LEFT JOIN` con `puntos_interes` conserva las rutas que todavía no tienen pu
 | `api/rutas.php?orden=duracion` | 200 | De menor a mayor duración |
 | `api/rutas.php?orden=xyz` | 400 | Orden no permitido |
 
-## Colección de ciudades: `api/ciudades.php` (reto 7.35)
+## Colección de ciudades: `api/ciudades.php`
 
 Tercer recurso de la API: la lista de **ciudades activas** con los campos mínimos que necesita el selector de `rutas.php` (`id_ciudad`, `nombre`, `pais` — sin coordenadas ni datos que el selector no consume).
 
@@ -295,7 +295,7 @@ El selector de `rutas.php` se alimenta de este recurso mediante `obtenerCiudades
 | `api/ciudades.php` | 200 | Ciudades activas, ordenadas por nombre |
 | Ciudad desactivada (`UPDATE ciudades SET activa = 0 ...`) | 200 | Desaparece de la lista y del selector |
 
-## Consumir la propia API (Manual 5)
+## Consumir la propia API
 
 **`ver_ruta.php`** es un cliente de nuestra propia API: no consulta MySQL. Pide la ruta por HTTP a `api/ruta.php`, interpreta su contrato JSON y genera HTML.
 
@@ -328,7 +328,7 @@ Se producen dos peticiones: el navegador pide `ver_ruta.php` (HTML) y `ver_ruta.
 3. **Contrato** — estado distinto de 200 o `ok` falso → el error de la API, o uno genérico
 4. **Datos** — falta el campo `datos` → "La respuesta no contiene los datos esperados."
 
-**Pruebas (apartado 5.25)**
+**Pruebas del cliente de detalle**
 
 | URL | Resultado esperado | Capa que responde |
 |---|---|---|
