@@ -106,6 +106,17 @@ select {
     margin-bottom: 1rem;
 }
 
+input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--papel);
+    font: inherit;
+    color: var(--tinta);
+    margin-bottom: 1rem;
+}
+
 button {
     background: var(--tinta);
     color: var(--papel);
@@ -311,6 +322,89 @@ a:focus-visible {
 }
 
 /* ============================================================
+   Listado de rutas (rutas.php)
+   ============================================================ */
+.filtros label {
+    margin-top: 0.5rem;
+}
+
+.filtros input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--papel);
+    font: inherit;
+    color: var(--tinta);
+    margin-bottom: 1rem;
+}
+
+button {
+    margin-right: 0.9rem;
+}
+
+.filtros .limpiar {
+    color: var(--tinta-suave);
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.filtros .limpiar:hover {
+    text-decoration: underline;
+}
+
+.contador-rutas {
+    margin: 0.2rem 0 0.8rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+}
+
+.lista-rutas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.lista-rutas a {
+    display: block;
+    color: var(--tinta);
+    text-decoration: none;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    padding: 0.75rem 0.95rem;
+    transition: border-color 0.15s ease;
+}
+
+.lista-rutas a:hover {
+    border-color: var(--rumbo);
+}
+
+.lista-rutas a:hover .titulo-ruta {
+    color: var(--rumbo);
+}
+
+.meta-ruta {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--tinta-suave);
+}
+
+.sin-resultados {
+    border: 1px dashed var(--linea);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    color: var(--tinta-suave);
+}
+
+/* ============================================================
    Estados
    ============================================================ */
 .error {
@@ -373,7 +467,18 @@ a:focus-visible {
         transition: none;
     }
 
-    button {
+    input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--papel);
+    font: inherit;
+    color: var(--tinta);
+    margin-bottom: 1rem;
+}
+
+button {
         transition: none;
     }
 }
