@@ -90,3 +90,27 @@ INSERT INTO puntos_interes
 VALUES
     (LAST_INSERT_ID(), 'Puerta del Sol', 'Punto de partida del paseo.', 1),
     (LAST_INSERT_ID(), 'Plaza Mayor', 'Plaza porticada del siglo XVII.', 2);
+
+-- ----------------------------------------------------------------
+-- Manual 6 · Más rutas para la colección y sus filtros
+-- ----------------------------------------------------------------
+
+-- Las tres rutas siguen el mismo patrón: sin identificadores fijos.
+-- La dificultad se asigna para que el filtro de dificultad (actividad 6.27)
+-- tenga los tres valores representados en la colección.
+
+INSERT INTO rutas
+    (id_ciudad, titulo, descripcion, duracion_minutos, distancia_km, dificultad)
+VALUES
+    ((SELECT id_ciudad FROM (SELECT id_ciudad FROM ciudades WHERE nombre = 'Barcelona' AND pais = 'España') AS b),
+    'Barcelona junto al mar',
+    'Un paseo desde la Barceloneta hasta el Port Olímpic.',
+    120, 3.60, 'fácil'),
+    ((SELECT id_ciudad FROM (SELECT id_ciudad FROM ciudades WHERE nombre = 'Madrid' AND pais = 'España') AS m),
+    'Madrid de los Austrias',
+    'Historia y plazas del centro de Madrid.',
+    150, 4.20, 'media'),
+    ((SELECT id_ciudad FROM (SELECT id_ciudad FROM ciudades WHERE nombre = 'París' AND pais = 'Francia') AS p),
+    'París junto al Sena',
+    'Un recorrido por algunos lugares esenciales del Sena.',
+    210, 5.40, 'alta');

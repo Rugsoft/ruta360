@@ -35,9 +35,9 @@ Ruta360\
 ├── ver_ruta.php           Detalle de una ruta consumiendo la API propia
 ├── rutas.php              Listado de rutas que enlaza a ver_ruta.php
 ├── conexion.php           Conexión PDO a MySQL
-├── estilos.css            Estilos (panel de instrumentos)
-├── api\
-│   └── ruta.php           Recurso JSON: ruta + ciudad + puntos de interés
+├── estilos.css            Estilos (panel de instrumentos)├── api\
+│   ├── ruta.php          Recurso JSON: ruta + ciudad + puntos de interés
+│   └── rutas.php         Colección JSON de rutas con filtros opcionales
 ├── comprobar_curl.php     Comprobación de la extensión cURL
 ├── prueba_api.php         Prueba mínima de comunicación con la API
 ├── sql\
@@ -58,6 +58,7 @@ Ruta360\
 | `rutas.php`                  | Rutas activas para enlazar     | Contrato JSON del recurso |
 | `servicios/cliente_rutas.php` | URL, cURL, HTTP y contrato JSON | HTML de la página          |
 | `api/ruta.php`               | Contrato JSON del recurso      | HTML de las páginas       |
+| `api/rutas.php`              | Contrato JSON de la colección  | HTML de las páginas       |
 | `estilos.css`                | Colores y presentación         | API y datos               |
 
 ## Instalación (entorno XAMPP)
@@ -185,6 +186,91 @@ Ejemplo aproximado de respuesta correcta (HTTP 200):
 | `api/ruta.php` (sin parámetro) | 400             | El parámetro es obligatorio       |
 
 Una ruta sin puntos devuelve `puntos_interes: []` con HTTP 200: la lista vacía es una respuesta válida, no un error.
+
+## Colección de rutas: `api/rutas.php` (Manual 6)
+
+Segundo recurso de la API: la colección de rutas activas, filtrable por ciudad (y por otros criterios). A diferencia del recurso individual, **cero coincidencias es una respuesta correcta**: 200 con `total: 0` y `datos: []`.
+
+| | Recurso individual (`api/ruta.php`) | Colección (`api/rutas.php`) |
+|---|---|---|
+| Devuelve | Una ruta (detalle completo) | Una lista de rutas (resumen) |
+| Sin coincidencia | 404 | 200 + lista vacía |
+| Parámetro | `id_ruta` obligatorio | Filtros opcionales |
+
+**URL de prueba**
+
+```
+http://localhost/curso-soc-php/Ruta360/api/rutas.php
+```
+
+**Filtros opcionales (combinables entre sí)**
+
+| Filtro | Valores | Sin él / vacío | Inválido |
+|---|---|---|---|
+| `id_ciudad` | Entero ≥ 1 | Sin filtro | 400 |
+| `duracion_maxima` (6.24) | Entero ≥ 1 (minutos) | Sin filtro | 400 |
+| `dificultad` (6.27) | `facil`, `media`, `alta` (acepta el acento) | Sin filtro | 400 |
+| `orden` (reto 6.29) | `titulo`, `duracion` | Orden por defecto (ciudad, título) | 400 |
+
+**Contrato de la colección**
+
+| Clave | Contenido |
+|---|---|
+| `ok` | `true` en el éxito; `false` en errores |
+| `filtros` | Criterio aplicado por el servidor (`id_ciudad`, `duracion_maxima`, `dificultad`, `orden`; `null` si no se aplicó) |
+| `total` | `count($rutas)`: elementos de esta respuesta, no de toda la BD |
+| `datos` | Lista de resúmenes: `id_ruta`, `titulo`, `duracion_minutos`, `distancia_km`, `ciudad` (objeto) y `numero_puntos` |
+| `error` | Solo en errores: mensaje comprensible |
+
+Ejemplo con filtro (`api/rutas.php?id_ciudad=1`):
+
+```json
+{
+  "ok": true,
+  "filtros": {
+    "id_ciudad": 1,
+    "duracion_maxima": null,
+    "dificultad": null,
+    "orden": null
+  },
+  "total": 2,
+  "datos": [
+    {
+      "id_ruta": 1,
+      "titulo": "Barcelona modernista",
+      "duracion_minutos": 180,
+      "distancia_km": 4.8,
+      "ciudad": {
+        "id_ciudad": 1,
+        "nombre": "Barcelona",
+        "pais": "España"
+      },
+      "numero_puntos": 3
+    }
+  ]
+}
+```
+
+**SQL dinámico controlado** — la consulta base (`INNER JOIN ciudades` + `LEFT JOIN puntos_interes` + `COUNT`/`GROUP BY`) es fija; cada filtro válido añade una condición fija (`AND r.id_ciudad = :id_ciudad`, etc.) y su parámetro preparado. **Nunca se concatena el valor recibido en el SQL**: ni en las condiciones ni en el `ORDER BY` (el parámetro `orden` solo elige entre fragmentos escritos por la aplicación).
+
+El `LEFT JOIN` con `puntos_interes` conserva las rutas que todavía no tienen puntos (con `INNER JOIN` desaparecerían del listado).
+
+**Pruebas de la colección (6.22 ampliada)**
+
+| URL | Estado | Resultado |
+|---|---|---|
+| `api/rutas.php` | 200 | Todas las rutas activas con `numero_puntos` |
+| `api/rutas.php?id_ciudad=1` | 200 | Solo rutas de Barcelona |
+| `api/rutas.php?id_ciudad=999` | 200 | `total: 0` y `datos: []` (no es 404) |
+| `api/rutas.php?id_ciudad=abc` | 400 | Filtro no válido |
+| `api/rutas.php?id_ciudad=0` | 400 | Filtro fuera de rango |
+| `api/rutas.php?duracion_maxima=150` | 200 | Excluye las de 180 y 210 min |
+| `api/rutas.php?id_ciudad=1&duracion_maxima=150` | 200 | Ambos criterios a la vez |
+| `api/rutas.php?dificultad=alta` | 200 | Solo París junto al Sena |
+| `api/rutas.php?dificultad=imposible` | 400 | Valor no admitido |
+| `api/rutas.php?orden=titulo` | 200 | Orden alfabético por título |
+| `api/rutas.php?orden=duracion` | 200 | De menor a mayor duración |
+| `api/rutas.php?orden=xyz` | 400 | Orden no permitido |
 
 ## Consumir la propia API (Manual 5)
 
