@@ -37,7 +37,8 @@ Ruta360\
 ├── conexion.php           Conexión PDO a MySQL
 ├── estilos.css            Estilos (panel de instrumentos)├── api\
 │   ├── ruta.php          Recurso JSON: ruta + ciudad + puntos de interés
-│   └── rutas.php         Colección JSON de rutas con filtros opcionales
+│   ├── rutas.php         Colección JSON de rutas con filtros opcionales
+│   └── ciudades.php      Colección JSON de ciudades activas (selector)
 ├── comprobar_curl.php     Comprobación de la extensión cURL
 ├── prueba_api.php         Prueba mínima de comunicación con la API
 ├── sql\
@@ -59,6 +60,7 @@ Ruta360\
 | `servicios/cliente_rutas.php` | URL, cURL, HTTP y contrato JSON | HTML de la página          |
 | `api/ruta.php`               | Contrato JSON del recurso      | HTML de las páginas       |
 | `api/rutas.php`              | Contrato JSON de la colección  | HTML de las páginas       |
+| `api/ciudades.php`           | Contrato JSON de ciudades      | HTML de las páginas       |
 | `estilos.css`                | Colores y presentación         | API y datos               |
 
 ## Instalación (entorno XAMPP)
@@ -271,6 +273,27 @@ El `LEFT JOIN` con `puntos_interes` conserva las rutas que todavía no tienen pu
 | `api/rutas.php?orden=titulo` | 200 | Orden alfabético por título |
 | `api/rutas.php?orden=duracion` | 200 | De menor a mayor duración |
 | `api/rutas.php?orden=xyz` | 400 | Orden no permitido |
+
+## Colección de ciudades: `api/ciudades.php` (reto 7.35)
+
+Tercer recurso de la API: la lista de **ciudades activas** con los campos mínimos que necesita el selector de `rutas.php` (`id_ciudad`, `nombre`, `pais` — sin coordenadas ni datos que el selector no consume).
+
+**URL de prueba**
+
+```
+http://localhost/curso-soc-php/Ruta360/api/ciudades.php
+```
+
+**Contrato** — `{ ok, total, datos: [{id_ciudad, nombre, pais}] }`. Una lista vacía es una respuesta correcta (200), no un error.
+
+El selector de `rutas.php` se alimenta de este recurso mediante `obtenerCiudades()` (que reutiliza `solicitarJson()`, el código común de cURL del cliente). Si el recurso no responde, la página sigue funcionando: el selector muestra solo "Todas las ciudades" y el listado no se ve afectado.
+
+**Pruebas del recurso**
+
+| URL | Estado | Resultado |
+|---|---|---|
+| `api/ciudades.php` | 200 | Ciudades activas, ordenadas por nombre |
+| Ciudad desactivada (`UPDATE ciudades SET activa = 0 ...`) | 200 | Desaparece de la lista y del selector |
 
 ## Consumir la propia API (Manual 5)
 

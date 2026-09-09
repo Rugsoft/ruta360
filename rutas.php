@@ -58,32 +58,19 @@ $resultado = obtenerColeccionRutasApi([
 $rutas = $resultado['datos'] ?? [];
 
 // ------------------------------------------------------------------
-// Opciones del selector de ciudades. Una ruta siempre se consume por
-// HTTP, así que tampoco aquí consultamos MySQL: usamos los datos de
-// la colección sin filtro, que ya incluye el nombre de cada ciudad.
+// Opciones del selector de ciudades (reto 7.35): recurso propio
+// api/ciudades.php en lugar de derivarlas de la colección de rutas.
+// Si no carga, la página sigue funcionando con solo "Todas".
 // ------------------------------------------------------------------
 
-$todas = null;
-if ($resultado['ok'] && $idCiudad === null && $duracionMaxima === null
-    && $dificultad === null && $orden === null) {
-    $todas = $rutas;
-} else {
-    // Petición filtrada: una segunda llamada sin filtros para el selector.
-    $respuestaCompleta = obtenerColeccionRutasApi();
-    if ($respuestaCompleta['ok']) {
-        $todas = $respuestaCompleta['datos'];
-    }
-}
-
 $ciudades = [];
-if (is_array($todas)) {
-    foreach ($todas as $ruta) {
-        $ciudad = $ruta['ciudad'] ?? null;
+$ciudadesApi = obtenerCiudades();
+if ($ciudadesApi['ok']) {
+    foreach ($ciudadesApi['datos'] as $ciudad) {
         if (isset($ciudad['id_ciudad'], $ciudad['nombre'])) {
             $ciudades[(int) $ciudad['id_ciudad']] = $ciudad['nombre'];
         }
     }
-    ksort($ciudades);
 }
 ?>
 <!doctype html>
