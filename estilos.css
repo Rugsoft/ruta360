@@ -405,6 +405,77 @@ button {
 }
 
 /* ============================================================
+   Formulario de creación (nueva_ruta.php)
+   ============================================================ */
+.panel-amplio {
+    max-width: 42rem;
+}
+
+.formulario {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.formulario label {
+    margin-top: 0.7rem;
+}
+
+.formulario textarea {
+    min-height: 8rem;
+    resize: vertical;
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--papel);
+    font: inherit;
+    color: var(--tinta);
+}
+
+.formulario small {
+    min-height: 1.1em;
+    color: #B00020;
+    font-size: 0.78rem;
+}
+
+.campos-pareja {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+}
+
+.campos-pareja input {
+    margin-bottom: 0;
+}
+
+.aviso {
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.1rem;
+    background: rgba(44, 110, 145, 0.08);
+    border-left: 4px solid var(--rumbo);
+    border-radius: 0 8px 8px 0;
+}
+
+.aviso-error {
+    background: rgba(176, 0, 32, 0.06);
+    border-left-color: #B00020;
+}
+
+.enlace-creada {
+    margin: 0 0 1.1rem;
+}
+
+.enlace-creada a {
+    color: var(--rumbo);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.enlace-creada a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
    Estados
    ============================================================ */
 .error {

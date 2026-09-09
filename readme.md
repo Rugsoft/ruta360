@@ -34,6 +34,7 @@ Ruta360\
 ├── tiempo.php             Página de resultados (validación + servicio)
 ├── ver_ruta.php           Detalle de una ruta consumiendo la API propia
 ├── rutas.php              Listado de rutas que enlaza a ver_ruta.php
+├── nueva_ruta.php         Formulario de creación (POST a la API)
 ├── conexion.php           Conexión PDO a MySQL
 ├── estilos.css            Estilos (panel de instrumentos)├── api\
 │   ├── ruta.php          Recurso JSON: ruta + ciudad + puntos de interés
@@ -57,6 +58,7 @@ Ruta360\
 | `index.php`                  | Ciudades activas de MySQL      | Detalles de la API        |
 | `ver_ruta.php`               | Resultado `ok`/`estado`/`datos` | MySQL de la API          |
 | `rutas.php`                  | Rutas activas para enlazar     | Contrato JSON del recurso |
+| `nueva_ruta.php`             | Resultado `ok`/`mensaje`/`errores` | MySQL de la API       |
 | `servicios/cliente_rutas.php` | URL, cURL, HTTP y contrato JSON | HTML de la página          |
 | `api/ruta.php`               | Contrato JSON del recurso      | HTML de las páginas       |
 | `api/rutas.php`              | Contrato JSON de la colección  | HTML de las páginas       |
@@ -294,6 +296,55 @@ El selector de `rutas.php` se alimenta de este recurso mediante `obtenerCiudades
 |---|---|---|
 | `api/ciudades.php` | 200 | Ciudades activas, ordenadas por nombre |
 | Ciudad desactivada (`UPDATE ciudades SET activa = 0 ...`) | 200 | Desaparece de la lista y del selector |
+
+## Crear rutas: `POST api/rutas.php`
+
+La misma URL de la colección admite los dos verbos: GET consulta, POST crea. Cualquier otro método responde **405** con la cabecera `Allow: GET, POST`.
+
+El formulario `nueva_ruta.php` envía los datos a `crearRuta()` (cliente HTTP), que los convierte en JSON y los publica en la API; esta valida de nuevo, inserta con PDO y responde **201** con el identificador generado.
+
+**Contrato de entrada (JSON)**
+
+| Campo | Regla |
+|---|---|
+| `id_ciudad` | Entero ≥ 1; la ciudad debe existir |
+| `titulo` | Texto de 5 a 120 caracteres |
+| `descripcion` | Texto de 10 a 1000 caracteres |
+| `duracion_minutos` | Entero entre 15 y 1440 |
+| `distancia_km` | Número > 0 y ≤ 1000 |
+| `dificultad` | Opcional: `facil`, `media`, `alta` (por defecto `media`) |
+
+**Códigos de respuesta**
+
+| Código | Cuándo |
+|---|---|
+| `201 Created` | Ruta guardada; cuerpo con `id_ruta` y `url`, cabecera `Location` |
+| `400 Bad Request` | Cuerpo vacío o JSON no válido |
+| `404 Not Found` | La ciudad indicada no existe |
+| `405 Method Not Allowed` | Método distinto de GET/POST |
+| `422 Unprocessable Content` | JSON válido pero datos incorrectos; incluye `errores` por campo |
+| `500 Internal Server Error` | Fallo interno, sin detalles sensibles |
+
+**Prueba directa**
+
+```bash
+curl -i -X POST "http://localhost/curso-soc-php/Ruta360/api/rutas.php" \
+  -H "Content-Type: application/json" -H "Accept: application/json" \
+  -d '{"id_ciudad":1,"titulo":"Barcelona literaria","descripcion":"Paseo por escenarios literarios de la ciudad.","duracion_minutos":120,"distancia_km":3.5}'
+```
+
+**Pruebas de creación**
+
+| Caso | Resultado esperado |
+|---|---|
+| Datos correctos | 201 y un `id_ruta` nuevo |
+| Cuerpo vacío | 400 |
+| JSON con una coma sobrante | 400 |
+| Título de dos letras | 422 con error de `titulo` |
+| Duración negativa | 422 |
+| Dificultad inventada | 422 con error de `dificultad` |
+| Ciudad inexistente | 404 |
+| PUT sobre la colección | 405 y `Allow: GET, POST` |
 
 ## Consumir la propia API
 

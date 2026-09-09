@@ -3,6 +3,9 @@
 // Las páginas no consultan MySQL: piden los datos por HTTP e
 // interpretan el contrato JSON del proveedor.
 
+// Ubicación real del proyecto en este equipo.
+const API_BASE_URL = 'http://localhost/curso-soc-php/Ruta360/api';
+
 /**
  * Realiza una petición GET y aplica las dos primeras capas de error:
  * transporte (cURL) y JSON válido. Devuelve siempre la misma
@@ -63,9 +66,7 @@ function solicitarJson(string $url): array
  */
 function obtenerRutaApi(int $idRuta): array
 {
-    // La URL base apunta a la ubicación real del proyecto en este equipo.
-    $base = 'http://localhost/curso-soc-php/Ruta360/api/ruta.php';
-    $url = $base . '?' . http_build_query(['id_ruta' => $idRuta]);
+    $url = API_BASE_URL . '/ruta.php' . '?' . http_build_query(['id_ruta' => $idRuta]);
 
     $respuesta = solicitarJson($url);
 
@@ -115,7 +116,7 @@ function obtenerRutaApi(int $idRuta): array
  */
 function obtenerColeccionRutasApi(array $filtros = []): array
 {
-    $base = 'http://localhost/curso-soc-php/Ruta360/api/rutas.php';
+    $base = API_BASE_URL . '/rutas.php';
     $parametros = array_filter(
         $filtros,
         static fn($valor): bool => $valor !== null && $valor !== ''
@@ -175,7 +176,7 @@ function obtenerColeccionRutasApi(array $filtros = []): array
  */
 function obtenerCiudades(): array
 {
-    $base = 'http://localhost/curso-soc-php/Ruta360/api/ciudades.php';
+    $base = API_BASE_URL . '/ciudades.php';
 
     $respuesta = solicitarJson($base);
 
@@ -215,5 +216,77 @@ function obtenerCiudades(): array
         'estado' => $respuesta['estado'],
         'total' => (int) $contenido['total'],
         'datos' => $contenido['datos']
+    ];
+}
+
+/**
+ * Crea una ruta enviando JSON por POST a la colección (Manual 8).
+ * La página cliente no conoce PDO ni SQL: interpreta el código HTTP
+ * y la estructura JSON acordada.
+ *
+ * @return array{ok: bool, estado: int, mensaje: string, datos: array, errores: array}
+ */
+function crearRuta(array $datos): array
+{
+    $url = API_BASE_URL . '/rutas.php';
+    $json = json_encode($datos, JSON_UNESCAPED_UNICODE);
+
+    if ($json === false) {
+        return [
+            'ok' => false,
+            'estado' => 0,
+            'mensaje' => 'No se han podido preparar los datos.',
+            'datos' => [],
+            'errores' => []
+        ];
+    }
+
+    $curl = curl_init($url);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $json,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/json',
+            'Content-Type: application/json'
+        ],
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT => 8
+    ]);
+
+    $cuerpo = curl_exec($curl);
+    $estadoHttp = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $errorCurl = curl_error($curl);
+    curl_close($curl);
+
+    // Fallo de transporte: no hubo ninguna respuesta HTTP.
+    if ($cuerpo === false || $errorCurl !== '') {
+        error_log($errorCurl);
+        return [
+            'ok' => false,
+            'estado' => 0,
+            'mensaje' => 'No se ha podido conectar con la API.',
+            'datos' => [],
+            'errores' => []
+        ];
+    }
+
+    $contenido = json_decode($cuerpo, true);
+    if (!is_array($contenido)) {
+        return [
+            'ok' => false,
+            'estado' => $estadoHttp,
+            'mensaje' => 'La API ha enviado una respuesta no válida.',
+            'datos' => [],
+            'errores' => []
+        ];
+    }
+
+    return [
+        'ok' => $estadoHttp === 201 && ($contenido['ok'] ?? false) === true,
+        'estado' => $estadoHttp,
+        'mensaje' => (string) ($contenido['mensaje'] ?? $contenido['error'] ?? 'Respuesta sin mensaje.'),
+        'datos' => is_array($contenido['datos'] ?? null) ? $contenido['datos'] : [],
+        'errores' => is_array($contenido['errores'] ?? null) ? $contenido['errores'] : []
     ];
 }

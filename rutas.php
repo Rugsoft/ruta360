@@ -85,6 +85,7 @@ if ($ciudadesApi['ok']) {
 <main class="panel">
     <header class="panel-cabecera">
         <a class="volver" href="index.php">← Elegir otra ciudad</a>
+        <a class="volver" href="nueva_ruta.php">+ Nueva ruta</a>
         <p class="panel-rol">Rutas recomendadas</p>
     </header>
 
