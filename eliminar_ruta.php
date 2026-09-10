@@ -1,12 +1,18 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/seguridad_web.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+// Manual 10.20: Exigir rol admin
+exigirRolWeb(['admin']);
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     http_response_code(405);
     exit('Método no permitido.');
 }
+
+validarCsrf();
 
 $idRuta = filter_input(INPUT_POST, 'id_ruta', FILTER_VALIDATE_INT);
 if ($idRuta === false || $idRuta === null || $idRuta < 1) {

@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/seguridad_web.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+$usuario = usuarioAutenticado();
 
 $idRuta = filter_input(
     INPUT_GET,
@@ -31,6 +34,8 @@ $errorPatch = '';
 
 // Actividad guiada 9.30 · PATCH de duración desde la interfaz
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['cambiar_duracion']) && $idRuta) {
+    exigirRolWeb(['editor', 'admin']);
+    validarCsrf();
     $nuevaDuracion = trim((string) ($_POST['duracion_minutos'] ?? ''));
     $resultadoPatch = modificarRuta($idRuta, ['duracion_minutos' => $nuevaDuracion]);
     if ($resultadoPatch['ok'] ?? false) {
@@ -82,11 +87,19 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
         <p><?= htmlspecialchars($ruta['descripcion']) ?></p>
 
         <div class="acciones-ruta">
-            <a class="boton-accion" href="editar_ruta.php?id_ruta=<?= (int) $ruta['id_ruta'] ?>">Editar ruta</a>
-            <form method="post" action="eliminar_ruta.php" onsubmit="return confirm('¿Eliminar esta ruta?');" style="margin:0;">
-                <input type="hidden" name="id_ruta" value="<?= (int) $ruta['id_ruta'] ?>">
-                <button type="submit" class="peligro">Eliminar ruta</button>
-            </form>
+            <?php if ($usuario && in_array($usuario['rol'], ['editor', 'admin'], true)): ?>
+                <a class="boton-accion" href="editar_ruta.php?id_ruta=<?= (int) $ruta['id_ruta'] ?>">Editar ruta</a>
+            <?php endif; ?>
+            <?php if ($usuario && $usuario['rol'] === 'admin'): ?>
+                <form method="post" action="eliminar_ruta.php" onsubmit="return confirm('¿Eliminar esta ruta?');" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
+                    <input type="hidden" name="id_ruta" value="<?= (int) $ruta['id_ruta'] ?>">
+                    <button type="submit" class="peligro">Eliminar ruta</button>
+                </form>
+            <?php endif; ?>
+            <?php if (!$usuario): ?>
+                <a class="boton-accion" href="login.php">Iniciar sesión para gestionar</a>
+            <?php endif; ?>
         </div>
 
         <div class="lecturas">
@@ -128,9 +141,11 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
             </ol>
         <?php endif; ?>
 
+        <?php if ($usuario && in_array($usuario['rol'], ['editor', 'admin'], true)): ?>
         <details class="detalle-patch">
             <summary>Ajustar solo la duración (PATCH)</summary>
             <form method="post" class="formulario-patch">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
                 <input type="hidden" name="cambiar_duracion" value="1">
                 <label for="duracion_rapida">Nueva duración (minutos):</label>
                 <input
@@ -147,6 +162,7 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
                 <p class="error"><?= htmlspecialchars($errorPatch) ?></p>
             <?php endif; ?>
         </details>
+        <?php endif; ?>
     <?php endif; ?>
 </main>
 </body>

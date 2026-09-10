@@ -3,7 +3,10 @@
 // La página no consulta las tablas: pide la colección a la API y
 // presenta el resultado. El filtro se envía como parámetros GET.
 
+require_once __DIR__ . '/seguridad_web.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+$usuario = usuarioAutenticado();
 
 // ------------------------------------------------------------------
 // Leemos los filtros del usuario (todas las validaciones de formato
@@ -85,8 +88,14 @@ if ($ciudadesApi['ok']) {
 <main class="panel">
     <header class="panel-cabecera">
         <a class="volver" href="index.php">← Elegir otra ciudad</a>
-        <a class="volver" href="nueva_ruta.php">+ Nueva ruta</a>
-        <p class="panel-rol">Rutas recomendadas</p>
+        <?php if ($usuario && in_array($usuario['rol'], ['editor', 'admin'], true)): ?>
+            <a class="volver" href="nueva_ruta.php">+ Nueva ruta</a>
+        <?php endif; ?>
+        <?php if ($usuario): ?>
+            <span class="panel-rol"><?= htmlspecialchars($usuario['nombre']) ?> (<?= htmlspecialchars($usuario['rol']) ?>) · <a class="volver" href="logout.php">Salir</a></span>
+        <?php else: ?>
+            <a class="volver" href="login.php">Acceso admin</a>
+        <?php endif; ?>
     </header>
 
     <h1>Rutas de Ruta360</h1>

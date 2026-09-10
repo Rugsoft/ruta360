@@ -6,6 +6,9 @@
 // Ubicación real del proyecto en este equipo.
 const API_BASE_URL = 'http://localhost/curso-soc-php/Ruta360/api';
 
+// Token Bearer para peticiones de escritura autenticadas (Manual 10)
+const API_TOKEN = 'a000000000000000000000000000000000000000000000000000000000000001';
+
 /**
  * Realiza una petición GET y aplica las dos primeras capas de error:
  * transporte (cURL) y JSON válido. Devuelve siempre la misma
@@ -220,83 +223,31 @@ function obtenerCiudades(): array
 }
 
 /**
- * Crea una ruta enviando JSON por POST a la colección (Manual 8).
- * La página cliente no conoce PDO ni SQL: interpreta el código HTTP
- * y la estructura JSON acordada.
+ * Crea una ruta enviando JSON por POST a la colección (Manual 8 y 10).
  *
- * @return array{ok: bool, estado: int, mensaje: string, datos: array, errores: array}
+ * @return array{ok: bool, estado: int, codigo: int, mensaje: string, datos: array, errores: array}
  */
 function crearRuta(array $datos): array
 {
     $url = API_BASE_URL . '/rutas.php';
-    $json = json_encode($datos, JSON_UNESCAPED_UNICODE);
-
-    if ($json === false) {
-        return [
-            'ok' => false,
-            'estado' => 0,
-            'mensaje' => 'No se han podido preparar los datos.',
-            'datos' => [],
-            'errores' => []
-        ];
-    }
-
-    $curl = curl_init($url);
-    curl_setopt_array($curl, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $json,
-        CURLOPT_HTTPHEADER => [
-            'Accept: application/json',
-            'Content-Type: application/json'
-        ],
-        CURLOPT_CONNECTTIMEOUT => 3,
-        CURLOPT_TIMEOUT => 8
-    ]);
-
-    $cuerpo = curl_exec($curl);
-    $estadoHttp = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $errorCurl = curl_error($curl);
-    curl_close($curl);
-
-    // Fallo de transporte: no hubo ninguna respuesta HTTP.
-    if ($cuerpo === false || $errorCurl !== '') {
-        error_log($errorCurl);
-        return [
-            'ok' => false,
-            'estado' => 0,
-            'mensaje' => 'No se ha podido conectar con la API.',
-            'datos' => [],
-            'errores' => []
-        ];
-    }
-
-    $contenido = json_decode($cuerpo, true);
-    if (!is_array($contenido)) {
-        return [
-            'ok' => false,
-            'estado' => $estadoHttp,
-            'mensaje' => 'La API ha enviado una respuesta no válida.',
-            'datos' => [],
-            'errores' => []
-        ];
-    }
+    $resultado = enviarJson('POST', $url, $datos);
 
     return [
-        'ok' => $estadoHttp === 201 && ($contenido['ok'] ?? false) === true,
-        'estado' => $estadoHttp,
-        'mensaje' => (string) ($contenido['mensaje'] ?? $contenido['error'] ?? 'Respuesta sin mensaje.'),
-        'datos' => is_array($contenido['datos'] ?? null) ? $contenido['datos'] : [],
-        'errores' => is_array($contenido['errores'] ?? null) ? $contenido['errores'] : []
+        'ok' => ($resultado['codigo'] ?? 0) === 201 && ($resultado['ok'] ?? false) === true,
+        'estado' => $resultado['codigo'] ?? 0,
+        'codigo' => $resultado['codigo'] ?? 0,
+        'mensaje' => (string) ($resultado['mensaje'] ?? $resultado['error'] ?? 'Respuesta sin mensaje.'),
+        'datos' => is_array($resultado['datos'] ?? null) ? $resultado['datos'] : [],
+        'errores' => is_array($resultado['errores'] ?? null) ? $resultado['errores'] : []
     ];
 }
 
 // ==================================================================
-// Operaciones PUT, PATCH y DELETE (Manual 9)
+// Operaciones PUT, PATCH y DELETE (Manual 9 y 10)
 // ==================================================================
 
 /**
- * 9.20 Un cliente cURL reutilizable para PUT, PATCH y DELETE
+ * 9.20 & 10.16 Un cliente cURL reutilizable para POST, PUT, PATCH y DELETE
  */
 function enviarJson(
     string $metodo, string $url, ?array $datos = null
@@ -307,8 +258,10 @@ function enviarJson(
         CURLOPT_CUSTOMREQUEST => $metodo,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
-            'Content-Type: application/json'
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . API_TOKEN
         ],
+        CURLOPT_CONNECTTIMEOUT => 3,
         CURLOPT_TIMEOUT => 8
     ];
     if ($datos !== null) {
@@ -317,7 +270,8 @@ function enviarJson(
             return [
                 'ok' => false,
                 'codigo' => 0,
-                'mensaje' => 'No se han podido preparar los datos.'
+                'mensaje' => 'No se han podido preparar los datos.',
+                'error' => 'No se han podido preparar los datos.'
             ];
         }
         $opciones[CURLOPT_POSTFIELDS] = $json;
@@ -332,7 +286,8 @@ function enviarJson(
         return [
             'ok' => false,
             'codigo' => 0,
-            'mensaje' => 'No se ha podido conectar con la API.'
+            'mensaje' => 'No se ha podido conectar con la API.',
+            'error' => 'No se ha podido conectar con la API.'
         ];
     }
 
@@ -342,7 +297,8 @@ function enviarJson(
         : [
             'ok' => false,
             'codigo' => $codigo,
-            'mensaje' => 'La API ha enviado una respuesta no válida.'
+            'mensaje' => 'La API ha enviado una respuesta no válida.',
+            'error' => 'La API ha enviado una respuesta no válida.'
         ];
 }
 

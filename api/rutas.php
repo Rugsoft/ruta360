@@ -14,6 +14,15 @@ require_once __DIR__ . '/../conexion.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+/**
+ * 10.13 Definir los permisos RBAC
+ */
+const PERMISOS_ROL = [
+    'lector' => [],
+    'editor' => ['crear_ruta', 'editar_ruta'],
+    'admin' => ['crear_ruta', 'editar_ruta', 'eliminar_ruta']
+];
+
 function responderJson(int $estado, array $contenido): never
 {
     http_response_code($estado);
@@ -36,18 +45,22 @@ if ($metodo === 'GET') {
 }
 
 if ($metodo === 'POST') {
+    exigirPermiso($pdo, 'crear_ruta');
     crearRuta($pdo);
 }
 
 if ($metodo === 'PUT') {
+    exigirPermiso($pdo, 'editar_ruta');
     actualizarRutaCompleta($pdo);
 }
 
 if ($metodo === 'PATCH') {
+    exigirPermiso($pdo, 'editar_ruta');
     actualizarRutaParcial($pdo);
 }
 
 if ($metodo === 'DELETE') {
+    exigirPermiso($pdo, 'eliminar_ruta');
     eliminarRuta($pdo);
 }
 
@@ -720,4 +733,99 @@ function eliminarRuta(PDO $pdo): never
             'error' => 'No se ha podido eliminar la ruta.'
         ]);
     }
+}
+
+// ==================================================================
+// Autenticación Bearer y RBAC (Manual 10)
+// ==================================================================
+
+/**
+ * 10.9 Leer la cabecera de autorización en PHP
+ */
+function obtenerCabeceraAuthorization(): string
+{
+    $cabecera = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+
+    if ($cabecera === '' && function_exists('getallheaders')) {
+        $headers = getallheaders();
+        $cabecera = $headers['Authorization']
+            ?? $headers['authorization']
+            ?? '';
+    }
+    return trim($cabecera);
+}
+
+/**
+ * 10.10 Extraer el token Bearer
+ */
+function extraerTokenBearer(): string
+{
+    $cabecera = obtenerCabeceraAuthorization();
+    if (!preg_match('/^Bearer\s+([A-Fa-f0-9]{64})$/', $cabecera, $m)) {
+        header('WWW-Authenticate: Bearer');
+        responderJson(401, [
+            'ok' => false,
+            'mensaje' => 'Se necesita un token Bearer válido.',
+            'error' => 'Se necesita un token Bearer válido.'
+        ]);
+    }
+    return $m[1];
+}
+
+/**
+ * 10.11 & 10.12 Buscar un token activo y actualizar último uso
+ */
+function autenticarToken(PDO $pdo): array
+{
+    $token = extraerTokenBearer();
+    $hash = hash('sha256', $token);
+
+    $sql = 'SELECT u.id_usuario, u.nombre, u.email, u.rol, t.id_token
+        FROM api_tokens t
+        INNER JOIN usuarios u ON u.id_usuario = t.id_usuario
+        WHERE t.token_hash = :token_hash
+        AND t.revocado_en IS NULL
+        AND (t.expira_en IS NULL OR t.expira_en > NOW())
+        AND u.activo = 1
+        LIMIT 1';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['token_hash' => $hash]);
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($usuario === false) {
+        header('WWW-Authenticate: Bearer');
+        responderJson(401, [
+            'ok' => false,
+            'mensaje' => 'El token no es válido o ha caducado.',
+            'error' => 'El token no es válido o ha caducado.'
+        ]);
+    }
+
+    $stmtUso = $pdo->prepare(
+        'UPDATE api_tokens SET ultimo_uso = NOW() WHERE id_token = :id_token'
+    );
+    $stmtUso->execute(['id_token' => (int) $usuario['id_token']]);
+
+    return $usuario;
+}
+
+function tienePermiso(string $rol, string $permiso): bool
+{
+    return in_array($permiso, PERMISOS_ROL[$rol] ?? [], true);
+}
+
+/**
+ * 10.14 Responder 403 cuando falta permiso
+ */
+function exigirPermiso(PDO $pdo, string $permiso): array
+{
+    $usuario = autenticarToken($pdo);
+    if (!tienePermiso($usuario['rol'] ?? '', $permiso)) {
+        responderJson(403, [
+            'ok' => false,
+            'mensaje' => 'No tienes permiso para esta operación.',
+            'error' => 'No tienes permiso para esta operación.'
+        ]);
+    }
+    return $usuario;
 }

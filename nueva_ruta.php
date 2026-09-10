@@ -7,7 +7,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/seguridad_web.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+// Manual 10.20: Exigir rol editor o admin
+exigirRolWeb(['editor', 'admin']);
 
 $valores = [
     'id_ciudad' => '',
@@ -36,6 +40,7 @@ if ($ciudadesApi['ok']) {
 $dificultades = ['' => 'Sin especificar', 'facil' => 'Fácil', 'media' => 'Media', 'alta' => 'Alta'];
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    validarCsrf();
     foreach ($valores as $campo => $valor) {
         $valores[$campo] = trim((string) ($_POST[$campo] ?? ''));
     }
@@ -82,6 +87,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <?php endif; ?>
 
     <form method="post" action="nueva_ruta.php" class="formulario">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
         <label for="r-ciudad">Ciudad</label>
         <select id="r-ciudad" name="id_ciudad" required>
             <option value="">Selecciona una ciudad</option>

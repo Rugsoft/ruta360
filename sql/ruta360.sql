@@ -113,3 +113,30 @@ VALUES
     'París junto al Sena',
     'Un recorrido por algunos lugares esenciales del Sena.',
     210, 5.40, 'alta');
+
+-- ----------------------------------------------------------------
+-- Usuarios y Tokens de API (Manual 10)
+-- ----------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    rol ENUM('lector', 'editor', 'admin') NOT NULL DEFAULT 'lector',
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id_token INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT UNSIGNED NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    expira_en DATETIME NULL,
+    revocado_en DATETIME NULL,
+    ultimo_uso DATETIME NULL,
+    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_token_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuarios(id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
