@@ -91,6 +91,12 @@ if ($ciudadesApi['ok']) {
 
     <h1>Rutas de Ruta360</h1>
 
+    <?php if (filter_input(INPUT_GET, 'eliminada', FILTER_VALIDATE_INT) === 1): ?>
+        <div class="aviso aviso-exito">
+            Ruta eliminada correctamente.
+        </div>
+    <?php endif; ?>
+
     <?php if (!$resultado['ok']): ?>
         <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
     <?php else: ?>

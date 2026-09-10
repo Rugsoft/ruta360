@@ -52,6 +52,7 @@ try {
     if (!$ruta) {
         responderJson(404, [
             'ok' => false,
+            'mensaje' => 'La ruta no existe o no está disponible.',
             'error' => 'La ruta no existe o no está disponible.'
         ]);
     }
@@ -69,6 +70,7 @@ try {
         'ok' => true,
         'datos' => [
             'id_ruta' => (int) $ruta['id_ruta'],
+            'id_ciudad' => (int) $ruta['id_ciudad'],
             'titulo' => $ruta['titulo'],
             'descripcion' => $ruta['descripcion'],
             'duracion_minutos' => (int) $ruta['duracion_minutos'],

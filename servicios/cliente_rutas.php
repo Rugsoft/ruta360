@@ -290,3 +290,96 @@ function crearRuta(array $datos): array
         'errores' => is_array($contenido['errores'] ?? null) ? $contenido['errores'] : []
     ];
 }
+
+// ==================================================================
+// Operaciones PUT, PATCH y DELETE (Manual 9)
+// ==================================================================
+
+/**
+ * 9.20 Un cliente cURL reutilizable para PUT, PATCH y DELETE
+ */
+function enviarJson(
+    string $metodo, string $url, ?array $datos = null
+): array {
+    $ch = curl_init($url);
+    $opciones = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => $metodo,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/json',
+            'Content-Type: application/json'
+        ],
+        CURLOPT_TIMEOUT => 8
+    ];
+    if ($datos !== null) {
+        $json = json_encode($datos, JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            return [
+                'ok' => false,
+                'codigo' => 0,
+                'mensaje' => 'No se han podido preparar los datos.'
+            ];
+        }
+        $opciones[CURLOPT_POSTFIELDS] = $json;
+    }
+    curl_setopt_array($ch, $opciones);
+    $respuesta = curl_exec($ch);
+    $codigo = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($respuesta === false || $error !== '') {
+        return [
+            'ok' => false,
+            'codigo' => 0,
+            'mensaje' => 'No se ha podido conectar con la API.'
+        ];
+    }
+
+    $contenido = json_decode($respuesta, true);
+    return is_array($contenido)
+        ? $contenido + ['codigo' => $codigo]
+        : [
+            'ok' => false,
+            'codigo' => $codigo,
+            'mensaje' => 'La API ha enviado una respuesta no válida.'
+        ];
+}
+
+/**
+ * 9.21 Funciones actualizarRuta, modificarRuta y eliminarRutaCliente
+ */
+function actualizarRuta(int $idRuta, array $datos): array
+{
+    $url = API_BASE_URL . '/rutas.php?id_ruta=' . $idRuta;
+    return enviarJson('PUT', $url, $datos);
+}
+
+function modificarRuta(int $idRuta, array $cambios): array
+{
+    $url = API_BASE_URL . '/rutas.php?id_ruta=' . $idRuta;
+    return enviarJson('PATCH', $url, $cambios);
+}
+
+function eliminarRutaCliente(int $idRuta): array
+{
+    $url = API_BASE_URL . '/rutas.php?id_ruta=' . $idRuta;
+    return enviarJson('DELETE', $url);
+}
+
+/**
+ * Adaptador de obtenerRutaApi con el formato de Manual 9
+ */
+function obtenerRuta(int $idRuta): array
+{
+    $res = obtenerRutaApi($idRuta);
+    return [
+        'ok' => $res['ok'],
+        'codigo' => $res['estado'] ?? 200,
+        'estado' => $res['estado'] ?? 200,
+        'mensaje' => $res['error'] ?? '',
+        'error' => $res['error'] ?? '',
+        'datos' => $res['datos'] ?? []
+    ];
+}
+

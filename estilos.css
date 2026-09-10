@@ -461,6 +461,92 @@ button {
     border-left-color: #B00020;
 }
 
+.aviso-exito {
+    background: rgba(27, 122, 61, 0.08);
+    border-left-color: #1B7A3D;
+    color: #1B7A3D;
+    font-weight: 600;
+}
+
+.acciones-ruta {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    margin-bottom: 1.4rem;
+}
+
+.boton-accion {
+    display: inline-block;
+    padding: 0.55rem 1rem;
+    background: var(--bruma);
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    color: var(--tinta);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.88rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.boton-accion:hover {
+    background: #dde4e8;
+    border-color: var(--tinta-suave);
+}
+
+button.peligro {
+    padding: 0.55rem 1rem;
+    background: transparent;
+    border: 1px solid #B00020;
+    border-radius: 8px;
+    color: #B00020;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+button.peligro:hover {
+    background: #B00020;
+    color: #ffffff;
+}
+
+.detalle-patch {
+    margin-top: 1.5rem;
+    padding: 0.8rem 1rem;
+    background: var(--bruma);
+    border-radius: 8px;
+    border: 1px solid var(--linea);
+}
+
+.detalle-patch summary {
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--rumbo);
+}
+
+.formulario-patch {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-end;
+}
+
+.formulario-patch label {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.formulario-patch input {
+    max-width: 120px;
+    margin-bottom: 0;
+}
+
+.formulario-patch button {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+}
+
 .enlace-creada {
     margin: 0 0 1.1rem;
 }

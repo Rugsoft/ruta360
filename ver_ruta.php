@@ -26,6 +26,20 @@ if ($resultado['ok']) {
     $puntos = $ruta['puntos_interes'] ?? [];
 }
 
+$actualizada = filter_input(INPUT_GET, 'actualizada', FILTER_VALIDATE_INT) === 1;
+$errorPatch = '';
+
+// Actividad guiada 9.30 · PATCH de duración desde la interfaz
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['cambiar_duracion']) && $idRuta) {
+    $nuevaDuracion = trim((string) ($_POST['duracion_minutos'] ?? ''));
+    $resultadoPatch = modificarRuta($idRuta, ['duracion_minutos' => $nuevaDuracion]);
+    if ($resultadoPatch['ok'] ?? false) {
+        header('Location: ver_ruta.php?id_ruta=' . $idRuta . '&actualizada=1');
+        exit;
+    }
+    $errorPatch = $resultadoPatch['mensaje'] ?? 'No se ha podido actualizar la duración.';
+}
+
 // La dificultad llega como texto del contrato; la convertimos en una clase
 // CSS segura para colorear la etiqueta. Un valor desconocido no rompe la página.
 $claseDificultad = match ($ruta['dificultad'] ?? null) {
@@ -50,6 +64,12 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
         <p class="panel-rol">Detalle de ruta</p>
     </header>
 
+    <?php if ($actualizada): ?>
+        <div class="aviso aviso-exito">
+            Ruta actualizada correctamente.
+        </div>
+    <?php endif; ?>
+
     <?php if (!$resultado['ok']): ?>
         <h1>No se ha podido cargar la ruta</h1>
         <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
@@ -60,6 +80,14 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
             <?= htmlspecialchars($ruta['ciudad']['pais']) ?>
         </p>
         <p><?= htmlspecialchars($ruta['descripcion']) ?></p>
+
+        <div class="acciones-ruta">
+            <a class="boton-accion" href="editar_ruta.php?id_ruta=<?= (int) $ruta['id_ruta'] ?>">Editar ruta</a>
+            <form method="post" action="eliminar_ruta.php" onsubmit="return confirm('¿Eliminar esta ruta?');" style="margin:0;">
+                <input type="hidden" name="id_ruta" value="<?= (int) $ruta['id_ruta'] ?>">
+                <button type="submit" class="peligro">Eliminar ruta</button>
+            </form>
+        </div>
 
         <div class="lecturas">
             <div class="lectura">
@@ -99,6 +127,26 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
                 <?php endforeach; ?>
             </ol>
         <?php endif; ?>
+
+        <details class="detalle-patch">
+            <summary>Ajustar solo la duración (PATCH)</summary>
+            <form method="post" class="formulario-patch">
+                <input type="hidden" name="cambiar_duracion" value="1">
+                <label for="duracion_rapida">Nueva duración (minutos):</label>
+                <input
+                    type="number"
+                    id="duracion_rapida"
+                    name="duracion_minutos"
+                    min="15"
+                    max="1440"
+                    required
+                    value="<?= (int) $ruta['duracion_minutos'] ?>">
+                <button type="submit">Actualizar duración</button>
+            </form>
+            <?php if ($errorPatch !== ''): ?>
+                <p class="error"><?= htmlspecialchars($errorPatch) ?></p>
+            <?php endif; ?>
+        </details>
     <?php endif; ?>
 </main>
 </body>
