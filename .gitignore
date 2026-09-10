@@ -1,1 +1,4 @@
 .freebuff/
+storage/cache/*.json
+storage/cache/*.tmp
+!storage/cache/.gitkeep

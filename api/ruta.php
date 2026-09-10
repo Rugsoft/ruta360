@@ -37,7 +37,9 @@ try {
             r.dificultad,
             c.id_ciudad,
             c.nombre AS ciudad,
-            c.pais
+            c.pais,
+            c.latitud,
+            c.longitud
         FROM rutas r
         INNER JOIN ciudades c
             ON c.id_ciudad = r.id_ciudad
@@ -48,6 +50,7 @@ try {
     $consultaRuta = $pdo->prepare($sqlRuta);
     $consultaRuta->execute(['id_ruta' => $idRuta]);
     $ruta = $consultaRuta->fetch();
+    $consultaRuta = null; // Manual 11.23: Liberar sentencia PDO
 
     if (!$ruta) {
         responderJson(404, [
@@ -65,6 +68,7 @@ try {
     );
     $consultaPuntos->execute(['id_ruta' => $idRuta]);
     $puntos = $consultaPuntos->fetchAll();
+    $consultaPuntos = null; // Manual 11.23: Liberar sentencia PDO
 
     $respuesta = [
         'ok' => true,
@@ -80,7 +84,9 @@ try {
             'ciudad' => [
                 'id_ciudad' => (int) $ruta['id_ciudad'],
                 'nombre' => $ruta['ciudad'],
-                'pais' => $ruta['pais']
+                'pais' => $ruta['pais'],
+                'latitud' => (float) $ruta['latitud'],
+                'longitud' => (float) $ruta['longitud']
             ],
             'puntos_interes' => array_map(
                 static fn(array $punto): array => [

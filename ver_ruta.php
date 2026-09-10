@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/seguridad_web.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
+require_once __DIR__ . '/servicios/meteorologia.php';
 
 $usuario = usuarioAutenticado();
 
@@ -23,10 +24,17 @@ if ($idRuta === false || $idRuta === null) {
 
 $ruta = null;
 $puntos = [];
+$meteo = null;
 
 if ($resultado['ok']) {
     $ruta = $resultado['datos'];
     $puntos = $ruta['puntos_interes'] ?? [];
+    if (isset($ruta['ciudad']['latitud'], $ruta['ciudad']['longitud'])) {
+        $meteo = obtenerTiempoResiliente(
+            (float) $ruta['ciudad']['latitud'],
+            (float) $ruta['ciudad']['longitud']
+        );
+    }
 }
 
 $actualizada = filter_input(INPUT_GET, 'actualizada', FILTER_VALIDATE_INT) === 1;
@@ -125,6 +133,31 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
 
         <?php if (isset($ruta['numero_puntos'])): ?>
             <p>Lugares incluidos: <?= (int) $ruta['numero_puntos'] ?></p>
+        <?php endif; ?>
+
+        <?php if ($meteo !== null): ?>
+            <?php if ($meteo['disponible']): ?>
+                <section class="meteo" style="margin: 1.2rem 0; padding: 0.9rem 1rem; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--bruma);">
+                    <p class="lectura-etiqueta" style="margin-bottom: 0.3rem;">Condiciones meteorológicas actuales</p>
+                    <p style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; margin: 0;">
+                        <?= htmlspecialchars((string) $meteo['datos']['temperatura']) ?><span class="unidad">°C</span>
+                        <?php if (isset($meteo['datos']['viento'])): ?>
+                            <span style="font-size: 0.9rem; font-weight: 500; color: var(--tinta-suave); margin-left: 0.8rem;">
+                                Viento: <?= htmlspecialchars((string) $meteo['datos']['viento']) ?> km/h
+                            </span>
+                        <?php endif; ?>
+                    </p>
+                    <?php if ($meteo['origen'] === 'cache_antigua'): ?>
+                        <div class="aviso" style="margin-top: 0.6rem; margin-bottom: 0;">
+                            Dato anterior. El servicio no responde ahora.
+                        </div>
+                    <?php endif; ?>
+                </section>
+            <?php else: ?>
+                <div class="aviso" style="margin: 1.2rem 0;">
+                    La meteorología no está disponible temporalmente.
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <h2>Puntos de interés</h2>

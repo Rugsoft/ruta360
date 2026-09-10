@@ -14,25 +14,25 @@ $sql = 'SELECT id_ciudad, nombre, pais, latitud, longitud
 $consulta = $pdo->prepare($sql);
 $consulta->execute(['id_ciudad' => $idCiudad]);
 $ciudad = $consulta->fetch();
+$consulta = null; // Manual 11.23: Liberar sentencia PDO
 
 if (!$ciudad) {
     exit('La ciudad no existe o no está disponible.');
 }
 
-$resultado = obtenerTiempoActual(
-    (float)$ciudad['latitud'],
-    (float)$ciudad['longitud']
+$resMeteo = obtenerTiempoResiliente(
+    (float) $ciudad['latitud'],
+    (float) $ciudad['longitud']
 );
 
 $temperatura = null;
 $viento = null;
 $direccionViento = null;
 
-if ($resultado['ok']) {
-    $actual = $resultado['datos']['current'] ?? [];
-    $temperatura = $actual['temperature_2m'] ?? null;
-    $viento = $actual['wind_speed_10m'] ?? null;
-    $direccionViento = $actual['wind_direction_10m'] ?? null;
+if ($resMeteo['disponible']) {
+    $temperatura = $resMeteo['datos']['temperatura'] ?? null;
+    $viento = $resMeteo['datos']['viento'] ?? null;
+    $direccionViento = $resMeteo['datos']['direccion_viento'] ?? null;
 }
 ?>
 <!doctype html>
@@ -54,9 +54,13 @@ if ($resultado['ok']) {
         <?= htmlspecialchars($ciudad['pais']) ?>
     </h1>
 
-    <?php if (!$resultado['ok']): ?>
-        <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
+    <?php if (!$resMeteo['disponible']): ?>
+        <p class="error">La información meteorológica no está disponible temporalmente.</p>
     <?php else: ?>
+        <?php if ($resMeteo['origen'] === 'cache_antigua'): ?>
+            <div class="aviso">Dato anterior. El servicio no responde ahora.</div>
+        <?php endif; ?>
+
         <div class="lecturas">
             <div class="lectura">
                 <p class="lectura-etiqueta">Temperatura</p>
@@ -74,7 +78,7 @@ if ($resultado['ok']) {
                 <p class="brujula-grados"><?= htmlspecialchars((string)$direccionViento) ?>°</p>
             </div>
         </div>
-        <p class="fuente">Datos: Open-Meteo · <?= htmlspecialchars((string)($resultado['datos']['current']['time'] ?? '')) ?></p>
+        <p class="fuente">Datos: Open-Meteo · <?= htmlspecialchars((string)($resMeteo['datos']['obtenido_en'] ?? '')) ?> (<?= htmlspecialchars($resMeteo['origen']) ?>)</p>
     <?php endif; ?>
 </main>
 </body>
