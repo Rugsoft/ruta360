@@ -1,7 +1,15 @@
 <?php
+// ver_ruta.php · Ficha de ruta enriquecida mediante adaptadores y orquestador (Manual 12)
+declare(strict_types=1);
+
 require_once __DIR__ . '/seguridad_web.php';
+require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/servicios/cliente_rutas.php';
-require_once __DIR__ . '/servicios/meteorologia.php';
+require_once __DIR__ . '/servicios/RepositorioRuta.php';
+require_once __DIR__ . '/servicios/AdaptadorDistanciasSoap.php';
+require_once __DIR__ . '/servicios/AdaptadorTransporte.php';
+require_once __DIR__ . '/servicios/AdaptadorMeteorologia.php';
+require_once __DIR__ . '/servicios/PlanificadorRuta.php';
 
 $usuario = usuarioAutenticado();
 
@@ -12,28 +20,32 @@ $idRuta = filter_input(
     ['options' => ['min_range' => 1]]
 );
 
-if ($idRuta === false || $idRuta === null) {
-    $resultado = [
-        'ok' => false,
-        'estado' => 400,
-        'error' => 'Selecciona una ruta válida.'
-    ];
-} else {
-    $resultado = obtenerRutaApi($idRuta);
-}
-
 $ruta = null;
 $puntos = [];
-$meteo = null;
+$externos = [];
+$errorCarga = null;
 
-if ($resultado['ok']) {
-    $ruta = $resultado['datos'];
-    $puntos = $ruta['puntos_interes'] ?? [];
-    if (isset($ruta['ciudad']['latitud'], $ruta['ciudad']['longitud'])) {
-        $meteo = obtenerTiempoResiliente(
-            (float) $ruta['ciudad']['latitud'],
-            (float) $ruta['ciudad']['longitud']
-        );
+if ($idRuta === false || $idRuta === null) {
+    $errorCarga = 'Selecciona una ruta válida.';
+} else {
+    $configServicios = require __DIR__ . '/config/servicios.php';
+    $repositorio = new RepositorioRuta($pdo);
+
+    $proveedores = [
+        new AdaptadorDistanciasSoap($configServicios['distancias_soap']['wsdl']),
+        new AdaptadorTransporte($configServicios['transporte']),
+        new AdaptadorMeteorologia($configServicios['meteorologia']),
+    ];
+
+    $planificador = new PlanificadorRuta($repositorio, $proveedores, 7000);
+
+    try {
+        $ficha = $planificador->preparar($idRuta);
+        $ruta = $ficha['ruta'];
+        $puntos = $ruta['puntos_interes'] ?? [];
+        $externos = $ficha['externos'] ?? [];
+    } catch (Throwable $e) {
+        $errorCarga = $e->getMessage();
     }
 }
 
@@ -53,8 +65,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['cambiar_du
     $errorPatch = $resultadoPatch['mensaje'] ?? 'No se ha podido actualizar la duración.';
 }
 
-// La dificultad llega como texto del contrato; la convertimos en una clase
-// CSS segura para colorear la etiqueta. Un valor desconocido no rompe la página.
 $claseDificultad = match ($ruta['dificultad'] ?? null) {
     'fácil' => 'facil',
     'media' => 'media',
@@ -71,7 +81,7 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-<main class="panel">
+<main class="panel panel-amplio">
     <header class="panel-cabecera">
         <a class="volver" href="rutas.php">← Todas las rutas</a>
         <p class="panel-rol">Detalle de ruta</p>
@@ -83,9 +93,9 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
         </div>
     <?php endif; ?>
 
-    <?php if (!$resultado['ok']): ?>
+    <?php if ($errorCarga !== null || $ruta === null): ?>
         <h1>No se ha podido cargar la ruta</h1>
-        <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
+        <p class="error"><?= htmlspecialchars($errorCarga ?? 'Ruta no encontrada.') ?></p>
     <?php else: ?>
         <h1><?= htmlspecialchars($ruta['titulo']) ?></h1>
         <p>
@@ -117,7 +127,18 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
             </div>
             <div class="lectura">
                 <p class="lectura-etiqueta">Distancia</p>
-                <p class="lectura-valor"><?= (float) $ruta['distancia_km'] ?><span class="unidad">km</span></p>
+                <?php
+                $distanciaMostrar = (float) $ruta['distancia_km'];
+                $origenDistancia = 'local';
+                if (isset($externos['distancias']) && $externos['distancias']->disponible && isset($externos['distancias']->datos['distancia_km'])) {
+                    $distanciaMostrar = (float) $externos['distancias']->datos['distancia_km'];
+                    $origenDistancia = 'soap_oficial';
+                }
+                ?>
+                <p class="lectura-valor"><?= $distanciaMostrar ?><span class="unidad">km</span></p>
+                <?php if ($origenDistancia === 'soap_oficial'): ?>
+                    <small class="meta-ruta">Validada por SOAP (<?= (int) $externos['distancias']->duracionMs ?>ms)</small>
+                <?php endif; ?>
             </div>
             <div class="lectura">
                 <p class="lectura-etiqueta">Dificultad</p>
@@ -135,30 +156,50 @@ $claseDificultad = match ($ruta['dificultad'] ?? null) {
             <p>Lugares incluidos: <?= (int) $ruta['numero_puntos'] ?></p>
         <?php endif; ?>
 
-        <?php if ($meteo !== null): ?>
-            <?php if ($meteo['disponible']): ?>
-                <section class="meteo" style="margin: 1.2rem 0; padding: 0.9rem 1rem; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--bruma);">
-                    <p class="lectura-etiqueta" style="margin-bottom: 0.3rem;">Condiciones meteorológicas actuales</p>
-                    <p style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; margin: 0;">
-                        <?= htmlspecialchars((string) $meteo['datos']['temperatura']) ?><span class="unidad">°C</span>
-                        <?php if (isset($meteo['datos']['viento'])): ?>
-                            <span style="font-size: 0.9rem; font-weight: 500; color: var(--tinta-suave); margin-left: 0.8rem;">
-                                Viento: <?= htmlspecialchars((string) $meteo['datos']['viento']) ?> km/h
-                            </span>
+        <!-- Sección de integraciones coordinadas por el Planificador (Manual 12.25) -->
+        <div class="bloque-servicios">
+            <!-- 1. Meteorología REST -->
+            <?php if (isset($externos['meteorologia'])): $m = $externos['meteorologia']; ?>
+                <section class="servicio-integracion">
+                    <div class="servicio-cabecera">
+                        <p class="servicio-titulo">Meteorología actual</p>
+                        <span class="servicio-meta">Origen: <?= htmlspecialchars($m->origen) ?> · <?= (int) $m->duracionMs ?>ms</span>
+                    </div>
+                    <?php if ($m->disponible): ?>
+                        <p class="servicio-valor-destacado"><?= htmlspecialchars((string) ($m->datos['temperatura'] ?? '—')) ?><span class="unidad">°C</span></p>
+                        <?php if ($m->origen === 'cache_antigua'): ?>
+                            <div class="aviso" style="margin-top: 0.5rem; margin-bottom: 0;">Dato anterior. El servicio no responde ahora.</div>
                         <?php endif; ?>
-                    </p>
-                    <?php if ($meteo['origen'] === 'cache_antigua'): ?>
-                        <div class="aviso" style="margin-top: 0.6rem; margin-bottom: 0;">
-                            Dato anterior. El servicio no responde ahora.
-                        </div>
+                    <?php else: ?>
+                        <p class="aviso" style="margin-bottom: 0;"><?= htmlspecialchars($m->aviso ?? 'Meteorología no disponible.') ?></p>
                     <?php endif; ?>
                 </section>
-            <?php else: ?>
-                <div class="aviso" style="margin: 1.2rem 0;">
-                    La meteorología no está disponible temporalmente.
-                </div>
             <?php endif; ?>
-        <?php endif; ?>
+
+            <!-- 2. Transporte público REST -->
+            <?php if (isset($externos['transporte'])): $t = $externos['transporte']; ?>
+                <section class="servicio-integracion">
+                    <div class="servicio-cabecera">
+                        <p class="servicio-titulo">Transporte y movilidad</p>
+                        <span class="servicio-meta">Origen: <?= htmlspecialchars($t->origen) ?> · <?= (int) $t->duracionMs ?>ms</span>
+                    </div>
+                    <?php if ($t->disponible): ?>
+                        <p class="servicio-cuerpo">
+                            Tiempo estimado en transporte: <strong><?= (int) ($t->datos['duracion_minutos'] ?? 0) ?> min</strong>
+                        </p>
+                        <?php if (!empty($t->datos['incidencias'])): ?>
+                            <div class="aviso" style="margin-top: 0.5rem; margin-bottom: 0;">
+                                <?php foreach ($t->datos['incidencias'] as $incidencia): ?>
+                                    <p style="margin: 0;"><?= htmlspecialchars((string) $incidencia) ?></p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p class="aviso" style="margin-bottom: 0;"><?= htmlspecialchars($t->aviso ?? 'Información de transporte no disponible.') ?></p>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
+        </div>
 
         <h2>Puntos de interés</h2>
         <?php if (!$puntos): ?>
